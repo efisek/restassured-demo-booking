@@ -75,5 +75,34 @@ public class BookingTest extends BaseSetup {
 
     }
 
+    @Test(priority = 2, dependsOnMethods ="createBooking")
+    public void deleteBooking(){
+        String token = TokenManager.getToken();
+        deleteBookingWithToken(_bookingId, token);
+    }
+
+    public void deleteBookingWithToken(String bookingId, String token) {
+        Assert.assertFalse(StringUtils.isEmpty(bookingId), "Booking ID is not found");
+
+        Response response = given()
+                .contentType(ContentType.JSON)
+                .header("Cookie", "token=" + token)
+                .when()
+                .delete(baseURI + "/booking/" + bookingId)
+                .then()
+                .assertThat().statusCode(201)
+                .extract().response();
+
+        given()
+                .when()
+                .get(baseURI + "/booking/" + _bookingId)
+                .then()
+                .assertThat().statusCode(404);
+
+        String responseBody = response.getBody().asString();
+        Assert.assertTrue(responseBody.contains("Created"), "'Created' message not seen");
+
+    }
+
 
 }
